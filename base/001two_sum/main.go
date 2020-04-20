@@ -9,18 +9,33 @@ package main
 import "fmt"
 
 func main() {
-	var nums = []int{2,5,7,15}
+	var nums = []int{2, 5, 7, 15}
 	var target int = 9
-	fmt.Printf("打印结果为:%v", twoSum(nums, target))
+	fmt.Printf("打印结果为:%v", twoSum1(nums, target))
 }
+
 //暴力破解
 func twoSum(nums []int, target int) []int {
 	for i, v := range nums {
-		for k:= i + 1; k < len(nums); k++ {
-			if target - v == nums[k] {
+		for k := i + 1; k < len(nums); k++ {
+			if target-v == nums[k] {
 				return []int{i, k}
 			}
 		}
 	}
 	return nil
+}
+
+//运用哈希表,空间换时间
+func twoSum1(nums []int, target int) []int {
+	var result = []int{}
+	m := make(map[int]int)
+	for i, k := range nums {
+		if value, exist := m[target-k]; exist {
+			result = append(result, value)
+			result = append(result, i)
+		}
+		m[k] = i
+	}
+	return result
 }
