@@ -7,12 +7,18 @@
  *  极易扩展 -> 新增接口(就是新增主题)；新增业务(就是新增订阅者)；
  *  业务场景： 所有发生变更，需要通知的业务场景
  *  订单取消类型（"主题"）（被观察者）  子操作（"订阅者"）（"观察者"）
+ *  总结:
+ *  被依赖的主题
+ *  被通知的订阅者
+ *  订阅者按需订阅主题
+ *  主题变化通知订阅者
  */
 package main
 
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 )
 
 // Observable 被观察者
@@ -221,5 +227,101 @@ func (observer *WechatNotify) Do(o Observable) (err error) {
 }
 
 func main() {
+	// 创建 未支付取消订单 “主题”
+	fmt.Println("----------------------- 未支付取消订单 “主题”")
+	orderUnPaidCancelSubject := &ObservableConcrete{}
+	// 注册订阅者
+	orderUnPaidCancelSubject.Attach(
+		&OrderStatus{},
+		&OrderStatusLog{},
+		&CouponRefund{},
+		&PromotionRefund{},
+		&StockRefund{},
+	)
+	// 主题通知订阅者
+	orderUnPaidCancelSubject.Notify()
 
+	// 创建 超时关单 “主题”
+	fmt.Println("----------------------- 超时关单 “主题”")
+	orderOverTimeSubject := &ObservableConcrete{}
+	orderOverTimeSubject.Attach(
+		&OrderStatus{},
+		&OrderStatusLog{},
+		&CouponRefund{},
+		&PromotionRefund{},
+		&StockRefund{},
+		&Email{},
+		&Sms{},
+		&WechatNotify{},
+	)
+	orderOverTimeSubject.Notify()
+
+	// 创建 已支付取消订单 “主题”
+	fmt.Println("----------------------- 已支付取消订单 “主题”")
+	orderPaidCancelSubject := &ObservableConcrete{}
+	orderPaidCancelSubject.Attach(
+		&OrderStatus{},
+		&OrderStatusLog{},
+		&CouponRefund{},
+		&PromotionRefund{},
+		&StockRefund{},
+		&GiftCardRefund{},
+		&WalletRefund{},
+		&Refund{},
+		&Invoice{},
+		&Email{},
+		&Sms{},
+		&WechatNotify{},
+	)
+	orderPaidCancelSubject.Notify()
+
+	// 创建 取消发货单 “主题”
+	fmt.Println("----------------------- 取消发货单 “主题”")
+	deliverBillCancelSubject := &ObservableConcrete{}
+	deliverBillCancelSubject.Attach(
+		&OrderStatus{},
+		&OrderStatusLog{},
+		&DeliverBillStatus{},
+		&DeliverBillStatusLog{},
+		&StockRefund{},
+		&GiftCardRefund{},
+		&WalletRefund{},
+		&Refund{},
+		&Invoice{},
+		&Email{},
+		&Sms{},
+		&WechatNotify{},
+	)
+	deliverBillCancelSubject.Notify()
+
+	// 创建 拒收 “主题”
+	fmt.Println("----------------------- 拒收 “主题”")
+	deliverBillRejectSubject := &ObservableConcrete{}
+	deliverBillRejectSubject.Attach(
+		&OrderStatus{},
+		&OrderStatusLog{},
+		&DeliverBillStatus{},
+		&DeliverBillStatusLog{},
+		&StockRefund{},
+		&GiftCardRefund{},
+		&WalletRefund{},
+		&Refund{},
+		&Invoice{},
+		&Email{},
+		&Sms{},
+		&WechatNotify{},
+	)
+	deliverBillRejectSubject.Notify()
+
+	// 未来可以快速的根据业务的变化 创建新的主题 从而快速构建新的业务接口
+	fmt.Println("----------------------- 未来的扩展...")
+
+}
+
+// 获取正在运行的函数名
+func runFuncName() string {
+	pc := make([]uintptr, 1)
+	runtime.Callers(2, pc)
+	f := runtime.FuncForPC(pc[0])
+	return f.Name()
 }
